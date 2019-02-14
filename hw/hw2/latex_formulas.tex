@@ -1,0 +1,131 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{hanging}
+
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\setlength{\parindent}{0pt}
+
+
+\begin{document}
+
+\textbf{Problem 2: Dwell times}\\
+
+
+Assuming transition probabilities only depend on the ion channels current state, we can represent the state of our channel using a Markov chain. Let $s_1,s_2,s_3,s_4$ be our $4$ open states, and let $s_5$ and $s_6$ be our closed states. Define $p(k)$ to be the vector of probabilities for the state of our system after $k$ steps ($i.e.$ $p_1(k)$ is the probability our system is in state $s_1$, and so forth). For each pair of states $i$ and $j$ where $i$ may be equal to $j$, define $a_{ij}$ to be the probability that at a given timestep, our system changes from state $j$ to state $i$. Thus, we can represent the evolution of $p(k)$ over time with:
+
+
+$$p(k+1) = \begin{pmatrix}
+a_{11} & a_{12} & a_{13} & a_{14} & a_{15} & a_{16} \\
+a_{21} & a_{22} & a_{23} & a_{24} & a_{25} & a_{26} \\
+a_{31} & a_{32} & a_{33} & a_{34} & a_{35} & a_{36} \\
+a_{41} & a_{42} & a_{43} & a_{44} & a_{45} & a_{46} \\
+a_{51} & a_{52} & a_{53} & a_{54} & a_{55} & a_{56} \\
+a_{61} & a_{62} & a_{63} & a_{64} & a_{65} & a_{66} \\
+\end{pmatrix}  p(k)
+$$
+
+Based on our system, it is likely to assume any state can be reached from any other state given enough time. If we are interested in the dwell times within the open state, we can narrow our focus to only the open states:
+
+$$\begin{pmatrix}
+p_1(k+1)\\
+p_2(k+1)\\
+p_3(k+1)\\
+p_4(k+1)\\
+\end{pmatrix} = \begin{pmatrix}
+a_{11} & a_{12} & a_{13} & a_{14}\\
+a_{21} & a_{22} & a_{23} & a_{24}\\
+a_{31} & a_{32} & a_{33} & a_{34} \\
+a_{41} & a_{42} & a_{43} & a_{44}\\
+
+\end{pmatrix}  \begin{pmatrix}
+p_1(k)\\
+p_2(k)\\
+p_3(k)\\
+p_4(k)\\
+\end{pmatrix} 
+$$
+
+Assuming this submatrix has $4$ distinct eigenvalues, it must be diagonalizable and thus it can be written in the form:
+
+$$\begin{pmatrix}
+a_{11} & a_{12} & a_{13} & a_{14}\\
+a_{21} & a_{22} & a_{23} & a_{24}\\
+a_{31} & a_{32} & a_{33} & a_{34} \\
+a_{41} & a_{42} & a_{43} & a_{44}\\
+\end{pmatrix}
+ = V  \begin{pmatrix}
+ \lambda_1 & 0 & 0 & 0 \\
+ 0 & \lambda_2 & 0 & 0 \\
+ 0 & 0 & \lambda_3 & 0 \\
+  0 & 0 & 0 & \lambda_4 \\
+ \end{pmatrix}  V^{-1}
+$$
+
+Where column $j$ of $V$ is the eigenvector associated to the $\lambda_j$. As this matrix is diagonalizable, finding $A^k$ is simple: $A^k = VD^kV^{-1}$. Thus:
+
+$$\begin{pmatrix}
+p_1(k+1)\\
+p_2(k+1)\\
+p_3(k+1)\\
+p_4(k+1)\\
+\end{pmatrix} = \begin{pmatrix}
+a_{11} & a_{12} & a_{13} & a_{14}\\
+a_{21} & a_{22} & a_{23} & a_{24}\\
+a_{31} & a_{32} & a_{33} & a_{34} \\
+a_{41} & a_{42} & a_{43} & a_{44}\\
+
+\end{pmatrix}  \begin{pmatrix}
+p_1(k)\\
+p_2(k)\\
+p_3(k)\\
+p_4(k)\\
+\end{pmatrix} = V  \begin{pmatrix}
+ \lambda_1 & 0 & 0 & 0 \\
+ 0 & \lambda_2 & 0 & 0 \\
+ 0 & 0 & \lambda_3 & 0 \\
+  0 & 0 & 0 & \lambda_4 \\
+ \end{pmatrix}^{k+1}  V^{-1}  \begin{pmatrix}
+p_1(0)\\
+p_2(0)\\
+p_3(0)\\
+p_4(0)\\
+\end{pmatrix} $$
+
+Expanding this by applying the matrix multiplication yields:
+
+$$p(k+1) = c_1\lambda_1^{k+1}v_1 + c_2\lambda_2^{k+1}v_2 +c_3\lambda_3^{k+1}v_3 +c_4\lambda_4^{k+1}v_4$$
+
+Where $v_j$ is the column $j$ of $V$ and $c_j = w_j \cdot p(0)$ where $w_j$ is row $j$ of $V^{-1}$. \\
+
+
+
+\vskip 10in
+
+
+\textbf{Problem 4: Simulating Markov Chains and Neural Spiking}\\
+
+As all ion channels are transitioning between states independently of both each other and over time, the number of open inward and outward ion channels, $n_{in}$ and $n_{out}$ respectively, behave as binomial random variables. In this case, define a "success" to be an open channel at the given timestep:\\
+
+$$n_{in} \sim binomial(N_{in}, p_{in})$$
+$$n_{out} \sim binomial(N_{out}, p_{out})$$
+
+We can calculate $p_{in}$ and $p_{out}$ from the stable distributions of our Markov chains. We know these stable distributions exist as we can easily verify these Markov Chains are power positive (and thus ergodic). At any given time, a spike is triggered if our stimuli is greater than some threshold $T$: $n_{in} - n_{out} > T$. Assume that at the given timepoint, $n_{in} = T + 1 + i$ for $i \in \{0, 1, \hdots ,N_{in} - T - 1\}$. This value of $n_{in}$ will occur with probability:
+ $$Prob(n_{in} = T+1+i) = binomial_{pdf}(N_{in} + T + 1, N_{in}, p_{in})$$
+For this $n_{in}$, a spike will be triggered if $n_{out} \leq i$ as then $n_{in} - n_{out} = T+1+i - i = T+1 > T$. Therefore, at the given $n_{in}$, the probability of a spike is:
+ $$Prob(n_{out} \leq i) = \sum_{k = 0}^{i} binomial_{pdf}(k, N_{out}, p_{out}) =binomial_{cdf}(i, N_{out}, p_{out})$$. 
+ 
+Therefore, as all these ion channels are independent of each other the probability of a spike being triggered under these circumstances is:
+
+ $$binomial_{pdf}(T+1+i, N_{in}, p_{in}) * binomial_{cdf}(i, N_{out}, p_{out})$$
+ 
+Considering all possible values of $i$, the overall probability of a spike being triggered with the given threshold is:
+
+$$\sum_{i = 0}^{N_{in}-T-1} binomial_{pdf}(T+1+i, N_{in}, p_{in}) * binomial_{cdf}(i, N_{out}, p_{out})$$
+\end{document}
+
+
